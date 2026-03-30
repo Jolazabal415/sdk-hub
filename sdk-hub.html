@@ -40,231 +40,132 @@
 <body>
 <div class="container">
   <h1>🎮 SDK Hub</h1>
-  
   <div class="section">
     <div class="section-title">📤 Step 1: Upload File</div>
     <div class="panel">
-      <p style="margin-bottom: 15px; color: #cbd5e1;">Drop the JSON file to load it for searching.</p>
+      <p style="margin-bottom: 15px; color: #cbd5e1;">Drop a .txt or .json file from Asana AI to load it for searching.</p>
       <div class="drop-zone" id="dropZone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="document.getElementById('fileInput').click()">
         <p>📁 Drop file here or click</p>
       </div>
-      <input type="file" id="fileInput" accept=".json" onchange="handleFileSelect(event)">
+      <input type="file" id="fileInput" accept=".txt,.json" onchange="handleFileSelect(event)">
       <div id="uploadStatus"></div>
     </div>
   </div>
-
   <div class="section">
     <div class="section-title">🔍 Step 2: Search</div>
     <div id="searchButtons" class="buttons-grid" style="opacity: 0.5;">
-      <button class="search-button" onclick="openModal('game-details')" disabled id="btn0">
-        <h3>View Game Details</h3>
-        <p>Enter game name to see all ad networks</p>
-      </button>
-      <button class="search-button" onclick="openModal('games-using')" disabled id="btn1">
-        <h3>Find Games Using Network</h3>
-        <p>Enter ad network name to find games using it</p>
-      </button>
-      <button class="search-button" onclick="openModal('games-using-version')" disabled id="btn2">
-        <h3>Games Using Network+Version</h3>
-        <p>Enter Ad network and version to see which games are using it</p>
-      </button>
-      <button class="search-button" onclick="openModal('games-not-using')" disabled id="btn3">
-        <h3>Games NOT Using Network+Version</h3>
-        <p>Enter which ad network and version to see which games are using the ad network but not this version</p>
-      </button>
+      <button class="search-button" onclick="openModal('game-details')" disabled id="btn0"><h3>View Game Details</h3><p>Enter game name to see all ad networks</p></button>
+      <button class="search-button" onclick="openModal('games-using')" disabled id="btn1"><h3>Find Games Using Network</h3><p>Enter ad network name to find games using it</p></button>
+      <button class="search-button" onclick="openModal('games-using-version')" disabled id="btn2"><h3>Games Using Network+Version</h3><p>Enter Ad network and version to see which games are using it</p></button>
+      <button class="search-button" onclick="openModal('games-not-using')" disabled id="btn3"><h3>Games NOT Using Network+Version</h3><p>Enter which ad network and version to see which games are using the ad network but not this version</p></button>
     </div>
   </div>
 </div>
-
-<div id="game-details" class="modal">
-  <div class="modal-content">
-    <button class="close-btn" onclick="closeModal('game-details')">×</button>
-    <h2>View Game Details</h2>
-    <input id="game-name" placeholder="Game name">
-    <button class="btn-submit" onclick="searchGameDetails()">Search</button>
-    <div id="results-game-details" class="results"></div>
-  </div>
-</div>
-
-<div id="games-using" class="modal">
-  <div class="modal-content">
-    <button class="close-btn" onclick="closeModal('games-using')">×</button>
-    <h2>Find Games Using Network</h2>
-    <input id="network-using" placeholder="Ad network name">
-    <button class="btn-submit" onclick="searchGamesUsingNetwork()">Search</button>
-    <div id="results-using" class="results"></div>
-  </div>
-</div>
-
-<div id="games-using-version" class="modal">
-  <div class="modal-content">
-    <button class="close-btn" onclick="closeModal('games-using-version')">×</button>
-    <h2>Games Using Network+Version</h2>
-    <input id="network-version" placeholder="Ad network">
-    <input id="version-search" placeholder="Version">
-    <button class="btn-submit" onclick="searchByVersion()">Search</button>
-    <div id="results-version" class="results"></div>
-  </div>
-</div>
-
-<div id="games-not-using" class="modal">
-  <div class="modal-content">
-    <button class="close-btn" onclick="closeModal('games-not-using')">×</button>
-    <h2>Games NOT Using Network+Version</h2>
-    <input id="network-not-using" placeholder="Ad network">
-    <input id="version-not-using" placeholder="Version">
-    <button class="btn-submit" onclick="searchNotUsing()">Search</button>
-    <div id="results-not-using" class="results"></div>
-  </div>
-</div>
-
+<div id="game-details" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('game-details')">×</button><h2>View Game Details</h2><input id="game-name" placeholder="Game name"><button class="btn-submit" onclick="searchGameDetails()">Search</button><div id="results-game-details" class="results"></div></div></div>
+<div id="games-using" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('games-using')">×</button><h2>Find Games Using Network</h2><input id="network-using" placeholder="Ad network name"><button class="btn-submit" onclick="searchGamesUsingNetwork()">Search</button><div id="results-using" class="results"></div></div></div>
+<div id="games-using-version" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('games-using-version')">×</button><h2>Games Using Network+Version</h2><input id="network-version" placeholder="Ad network"><input id="version-search" placeholder="Version"><button class="btn-submit" onclick="searchByVersion()">Search</button><div id="results-version" class="results"></div></div></div>
+<div id="games-not-using" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('games-not-using')">×</button><h2>Games NOT Using Network+Version</h2><input id="network-not-using" placeholder="Ad network"><input id="version-not-using" placeholder="Version"><button class="btn-submit" onclick="searchNotUsing()">Search</button><div id="results-not-using" class="results"></div></div></div>
 <script>
 let gameData = null;
-
 function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-function handleDragOver(e) {
-  e.preventDefault();
-  document.getElementById('dropZone').classList.add('dragover');
-}
-
-function handleDragLeave(e) {
-  document.getElementById('dropZone').classList.remove('dragover');
-}
-
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('dropZone').classList.remove('dragover');
-  const files = e.dataTransfer.files;
-  if (files.length > 0) {
-    handleFileSelect({ target: { files } });
+function handleDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('dragover'); }
+function handleDragLeave(e) { document.getElementById('dropZone').classList.remove('dragover'); }
+function handleDrop(e) { e.preventDefault(); document.getElementById('dropZone').classList.remove('dragover'); const files = e.dataTransfer.files; if (files.length > 0) { handleFileSelect({ target: { files } }); } }
+function parseTextFile(text) {
+  const games = [];
+  const lines = text.split('\n');
+  let currentGame = null;
+  let inNetworks = false;
+  let networkLines = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.includes('========== NETWORKS ==========')) { inNetworks = true; networkLines = []; continue; }
+    if (inNetworks && line.trim() === '') { continue; }
+    if (inNetworks && !line.includes('----------') && !line.includes('Status') && !line.includes('SDK') && !line.includes('Adapter') && line.trim()) {
+      if (currentGame) { currentGame.comment += '\n========== NETWORKS ==========\n' + networkLines.join('\n'); games.push(currentGame); }
+      currentGame = { name: line.trim(), comment: '', gid: Math.random().toString() };
+      inNetworks = false;
+      continue;
+    }
+    if (inNetworks && line.trim()) { networkLines.push(line); }
+    if (!inNetworks && !line.includes('=') && !line.includes('Status') && !line.includes('SDK') && !line.includes('Adapter') && line.trim() && !line.includes('SDK list') && !line.includes('Version') && !line.includes('Plugin') && !line.includes('Unity')) {
+      if (currentGame && networkLines.length > 0) { currentGame.comment += '\n========== NETWORKS ==========\n' + networkLines.join('\n'); games.push(currentGame); networkLines = []; }
+      currentGame = { name: line.trim(), comment: '', gid: Math.random().toString() };
+    }
   }
+  if (currentGame && networkLines.length > 0) { currentGame.comment += '\n========== NETWORKS ==========\n' + networkLines.join('\n'); games.push(currentGame); }
+  return { games, totalGames: games.length, scannedAt: new Date().toISOString() };
 }
-
 function handleFileSelect(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
-      gameData = JSON.parse(e.target.result);
+      const content = e.target.result;
+      if (file.name.endsWith('.json')) { gameData = JSON.parse(content); } 
+      else if (file.name.endsWith('.txt')) { gameData = parseTextFile(content); } 
+      else { throw new Error('Unsupported file type'); }
+      if (!gameData.games || gameData.games.length === 0) { throw new Error('No games found in file'); }
       document.getElementById('uploadStatus').innerHTML = `<div class="success">✓ Loaded ${gameData.games.length} games - Ready to search!</div>`;
-      
-      document.getElementById('btn0').disabled = false;
-      document.getElementById('btn1').disabled = false;
-      document.getElementById('btn2').disabled = false;
-      document.getElementById('btn3').disabled = false;
+      for (let i = 0; i < 4; i++) { document.getElementById(`btn${i}`).disabled = false; }
       document.getElementById('searchButtons').style.opacity = '1';
     } catch (err) {
-      document.getElementById('uploadStatus').innerHTML = `<div class="error">Invalid JSON file</div>`;
+      document.getElementById('uploadStatus').innerHTML = `<div class="error">Error: ${err.message}</div>`;
     }
   };
   reader.readAsText(file);
 }
-
 function searchGameDetails() {
   const gameName = document.getElementById('game-name').value;
   if (!gameName || !gameData) { alert('Load file first!'); return; }
-  
   const r = document.getElementById('results-game-details');
   const gameNameUpper = gameName.toUpperCase();
-  
   const game = gameData.games.find(g => g.name.toUpperCase().includes(gameNameUpper));
-  
-  if (!game) {
-    r.innerHTML = '<div class="error">Game not found</div>';
-    return;
-  }
-  
+  if (!game) { r.innerHTML = '<div class="error">Game not found</div>'; return; }
   const comment = game.comment;
   const lines = comment.split('\n');
-  
   let html = `<div class="game-details"><div style="font-weight: 600; font-size: 16px; color: #f1f5f9; margin-bottom: 12px;">${game.name}</div>`;
-  
   let inNetworks = false;
   for (const line of lines) {
-    if (line.includes('========== NETWORKS ==========')) {
-      inNetworks = true;
-      continue;
-    }
-    if (inNetworks && line.includes('----------')) {
-      continue;
-    }
-    if (inNetworks && line.trim() !== '') {
-      html += `<div class="network-info">${line.trim()}</div>`;
-    }
+    if (line.includes('========== NETWORKS ==========')) { inNetworks = true; continue; }
+    if (inNetworks && line.includes('----------')) { continue; }
+    if (inNetworks && line.trim() !== '') { html += `<div class="network-info">${line.trim()}</div>`; }
   }
-  
   html += '</div>';
   r.innerHTML = html;
 }
-
 function searchGamesUsingNetwork() {
   const net = document.getElementById('network-using').value;
   if (!net || !gameData) { alert('Load file first!'); return; }
-  
   const r = document.getElementById('results-using');
   const networkUpper = net.toUpperCase();
-  const results = gameData.games
-    .filter(g => g.comment.toUpperCase().includes(networkUpper))
-    .map(g => g.name);
-  
-  if (!results.length) {
-    r.innerHTML = '<div class="error">No games found using "' + net + '"</div>';
-    return;
-  }
-  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' +
-    results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
+  const results = gameData.games.filter(g => g.comment.toUpperCase().includes(networkUpper)).map(g => g.name);
+  if (!results.length) { r.innerHTML = '<div class="error">No games found using "' + net + '"</div>'; return; }
+  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' + results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
 }
-
 function searchByVersion() {
   const net = document.getElementById('network-version').value;
   const ver = document.getElementById('version-search').value;
   if (!net || !ver || !gameData) { alert('Load file and enter both!'); return; }
-  
   const r = document.getElementById('results-version');
   const networkUpper = net.toUpperCase();
   const versionUpper = ver.toUpperCase();
-  
-  const results = gameData.games
-    .filter(g => {
-      const text = g.comment.toUpperCase();
-      return text.includes(networkUpper) && text.includes(versionUpper);
-    })
-    .map(g => g.name);
-  
-  if (!results.length) {
-    r.innerHTML = '<div class="error">No games found</div>';
-    return;
-  }
-  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' +
-    results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
+  const results = gameData.games.filter(g => { const text = g.comment.toUpperCase(); return text.includes(networkUpper) && text.includes(versionUpper); }).map(g => g.name);
+  if (!results.length) { r.innerHTML = '<div class="error">No games found</div>'; return; }
+  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' + results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
 }
-
 function searchNotUsing() {
   const net = document.getElementById('network-not-using').value;
   const ver = document.getElementById('version-not-using').value;
   if (!net || !ver || !gameData) { alert('Load file and enter both!'); return; }
-  
   const r = document.getElementById('results-not-using');
   const networkUpper = net.toUpperCase();
   const versionUpper = ver.toUpperCase();
-  
-  const results = gameData.games
-    .filter(g => {
-      const text = g.comment.toUpperCase();
-      return !text.includes(networkUpper) || !text.includes(versionUpper);
-    })
-    .map(g => g.name);
-  
-  if (!results.length) {
-    r.innerHTML = '<div class="success">All games using it!</div>';
-    return;
-  }
-  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' +
-    results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
+  const results = gameData.games.filter(g => { const text = g.comment.toUpperCase(); return !text.includes(networkUpper) || !text.includes(versionUpper); }).map(g => g.name);
+  if (!results.length) { r.innerHTML = '<div class="success">All games using it!</div>'; return; }
+  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' + results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
 }
 </script>
 </body>
