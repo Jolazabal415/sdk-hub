@@ -11,8 +11,6 @@
     .section { margin-bottom: 40px; }
     .section-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #f1f5f9; }
     .panel { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 12px; padding: 24px; }
-    .progress-bar { width: 100%; height: 8px; background: rgba(15, 23, 42, 0.6); border-radius: 4px; margin: 15px 0; overflow: hidden; }
-    .progress-fill { height: 100%; background: #3b82f6; width: 0%; transition: width 0.3s; }
     .drop-zone { border: 2px dashed rgba(148, 163, 184, 0.4); border-radius: 8px; padding: 40px; text-align: center; margin: 15px 0; transition: all 0.3s; cursor: pointer; }
     .drop-zone:hover, .drop-zone.dragover { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.6); }
     .drop-zone p { color: #94a3b8; margin-bottom: 10px; }
@@ -28,9 +26,6 @@
     .close-btn { background: 0; border: 0; color: #e2e8f0; font-size: 24px; cursor: pointer; float: right; }
     input { width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 8px; color: #e2e8f0; margin: 10px 0; }
     .btn-submit { width: 100%; padding: 12px; background: #3b82f6; color: #fff; border: 0; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: 600; }
-    .btn-scan { background: #10b981; width: 100%; padding: 12px; color: #fff; border: 0; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; }
-    .btn-scan:hover:not(:disabled) { background: #059669; }
-    .btn-scan:disabled { background: #6366f1; cursor: not-allowed; }
     .results { margin-top: 20px; max-height: 400px; overflow-y: auto; }
     .result-item { background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 13px; }
     .result-game { font-weight: 600; color: #f1f5f9; }
@@ -45,19 +40,9 @@
   <h1>🎮 SDK Hub</h1>
   
   <div class="section">
-    <div class="section-title">📥 Step 1: Scan & Download</div>
+    <div class="section-title">📤 Step 1: Upload File</div>
     <div class="panel">
-      <p style="margin-bottom: 15px; color: #cbd5e1;">Click to scan Asana and download SDK data as a JSON file.</p>
-      <button class="btn-scan" id="scanBtn" onclick="startScan()">📊 Scan SDK Hub & Download</button>
-      <div class="progress-bar" id="progressBar" style="display: none;"><div class="progress-fill" id="progressFill"></div></div>
-      <div id="scanStatus"></div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">📤 Step 2: Upload File</div>
-    <div class="panel">
-      <p style="margin-bottom: 15px; color: #cbd5e1;">Drop the JSON file to load it.</p>
+      <p style="margin-bottom: 15px; color: #cbd5e1;">Drop the JSON file to load it for searching.</p>
       <div class="drop-zone" id="dropZone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="document.getElementById('fileInput').click()">
         <p>📁 Drop file here or click</p>
       </div>
@@ -67,19 +52,19 @@
   </div>
 
   <div class="section">
-    <div class="section-title">🔍 Step 3: Search</div>
+    <div class="section-title">🔍 Step 2: Search</div>
     <div id="searchButtons" class="buttons-grid" style="opacity: 0.5;">
       <button class="search-button" onclick="openModal('games-using')" disabled id="btn1">
         <h3>Find Games Using Network</h3>
-        <p>Find games using a network</p>
+        <p>Enter ad network name to find games using it</p>
       </button>
       <button class="search-button" onclick="openModal('games-using-version')" disabled id="btn2">
         <h3>Games Using Network+Version</h3>
-        <p>Find games with specific version</p>
+        <p>Enter Ad network and version to see which games are using it</p>
       </button>
       <button class="search-button" onclick="openModal('games-not-using')" disabled id="btn3">
         <h3>Games NOT Using Network+Version</h3>
-        <p>Find games not using combo</p>
+        <p>Enter which ad network and version to see which games are using the ad network but not this version</p>
       </button>
     </div>
   </div>
@@ -88,8 +73,8 @@
 <div id="games-using" class="modal">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('games-using')">×</button>
-    <h2>Games Using Network</h2>
-    <input id="network-using" placeholder="Network name">
+    <h2>Find Games Using Network</h2>
+    <input id="network-using" placeholder="Ad network name">
     <button class="btn-submit" onclick="searchGamesUsingNetwork()">Search</button>
     <div id="results-using" class="results"></div>
   </div>
@@ -99,7 +84,7 @@
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('games-using-version')">×</button>
     <h2>Games Using Network+Version</h2>
-    <input id="network-version" placeholder="Network">
+    <input id="network-version" placeholder="Ad network">
     <input id="version-search" placeholder="Version">
     <button class="btn-submit" onclick="searchByVersion()">Search</button>
     <div id="results-version" class="results"></div>
@@ -110,7 +95,7 @@
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('games-not-using')">×</button>
     <h2>Games NOT Using Network+Version</h2>
-    <input id="network-not-using" placeholder="Network">
+    <input id="network-not-using" placeholder="Ad network">
     <input id="version-not-using" placeholder="Version">
     <button class="btn-submit" onclick="searchNotUsing()">Search</button>
     <div id="results-not-using" class="results"></div>
@@ -118,7 +103,6 @@
 </div>
 
 <script>
-const API = 'https://sdk-hub.vercel.app';
 let gameData = null;
 
 function openModal(id) { document.getElementById(id).classList.add('active'); }
@@ -150,67 +134,17 @@ function handleFileSelect(event) {
   reader.onload = (e) => {
     try {
       gameData = JSON.parse(e.target.result);
-      document.getElementById('uploadStatus').innerHTML = `<div class="success">✓ Loaded ${gameData.games.length} games</div>`;
+      document.getElementById('uploadStatus').innerHTML = `<div class="success">✓ Loaded ${gameData.games.length} games - Ready to search!</div>`;
+      
       document.getElementById('btn1').disabled = false;
       document.getElementById('btn2').disabled = false;
       document.getElementById('btn3').disabled = false;
       document.getElementById('searchButtons').style.opacity = '1';
     } catch (err) {
-      document.getElementById('uploadStatus').innerHTML = `<div class="error">Invalid JSON</div>`;
+      document.getElementById('uploadStatus').innerHTML = `<div class="error">Invalid JSON file</div>`;
     }
   };
   reader.readAsText(file);
-}
-
-async function startScan() {
-  const btn = document.getElementById('scanBtn');
-  const status = document.getElementById('scanStatus');
-  const progressBar = document.getElementById('progressBar');
-  const progressFill = document.getElementById('progressFill');
-  
-  btn.disabled = true;
-  btn.textContent = '⏳ Scanning...';
-  status.innerHTML = '<div class="loading">Fetching from Asana...</div>';
-  progressBar.style.display = 'block';
-  progressFill.style.width = '0%';
-  
-  try {
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += Math.random() * 20;
-      if (progress > 90) progress = 90;
-      progressFill.style.width = progress + '%';
-    }, 800);
-    
-    const res = await fetch(API + '/api/cache-scan');
-    clearInterval(progressInterval);
-    progressFill.style.width = '100%';
-    
-    if (!res.ok) throw new Error(`Failed: ${res.status}`);
-    
-    const data = await res.json();
-    
-    const filename = `sdk-hub-cache-${new Date().toISOString().slice(0, 10)}.json`;
-    const json = JSON.stringify(data.cache, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    status.innerHTML = `<div class="success">✓ Downloaded ${data.cache.totalGames} games<br>Drag file into Step 2!</div>`;
-    
-  } catch (error) {
-    status.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-    progressBar.style.display = 'none';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '📊 Scan SDK Hub & Download';
-  }
 }
 
 function searchGamesUsingNetwork() {
@@ -224,10 +158,10 @@ function searchGamesUsingNetwork() {
     .map(g => g.name);
   
   if (!results.length) {
-    r.innerHTML = '<div class="error">No games found</div>';
+    r.innerHTML = '<div class="error">No games found using "' + net + '"</div>';
     return;
   }
-  r.innerHTML = '<div class="success">Found ' + results.length + '</div>' +
+  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' +
     results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
 }
 
@@ -251,7 +185,7 @@ function searchByVersion() {
     r.innerHTML = '<div class="error">No games found</div>';
     return;
   }
-  r.innerHTML = '<div class="success">Found ' + results.length + '</div>' +
+  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' +
     results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
 }
 
@@ -275,7 +209,7 @@ function searchNotUsing() {
     r.innerHTML = '<div class="success">All games using it!</div>';
     return;
   }
-  r.innerHTML = '<div class="success">Found ' + results.length + '</div>' +
+  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' +
     results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
 }
 </script>
