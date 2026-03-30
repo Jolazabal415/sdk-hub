@@ -33,6 +33,8 @@
     .error { color: #fca5a5; padding: 12px; background: rgba(220, 38, 38, 0.1); border-radius: 8px; margin: 10px 0; }
     .success { color: #86efac; padding: 12px; background: rgba(34, 197, 94, 0.1); border-radius: 8px; margin: 10px 0; }
     .game-details { background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 15px; margin: 10px 0; border-left: 3px solid #3b82f6; }
+    .network-block { margin: 10px 0; padding: 10px; background: rgba(59, 130, 246, 0.1); border-radius: 6px; }
+    .network-name { color: #60a5fa; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
     .network-info { color: #cbd5e1; font-size: 12px; line-height: 1.6; }
     #fileInput { display: none; }
   </style>
@@ -43,11 +45,11 @@
   <div class="section">
     <div class="section-title">📤 Step 1: Upload File</div>
     <div class="panel">
-      <p style="margin-bottom: 15px; color: #cbd5e1;">Drop a .txt or .json file from Asana AI to load it for searching.</p>
+      <p style="margin-bottom: 15px; color: #cbd5e1;">Drop a plain text (.txt) file from Asana AI to load it for searching.</p>
       <div class="drop-zone" id="dropZone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="document.getElementById('fileInput').click()">
         <p>📁 Drop file here or click</p>
       </div>
-      <input type="file" id="fileInput" accept=".txt,.json" onchange="handleFileSelect(event)">
+      <input type="file" id="fileInput" accept=".txt" onchange="handleFileSelect(event)">
       <div id="uploadStatus"></div>
     </div>
   </div>
@@ -74,28 +76,44 @@ function handleDragLeave(e) { document.getElementById('dropZone').classList.remo
 function handleDrop(e) { e.preventDefault(); document.getElementById('dropZone').classList.remove('dragover'); const files = e.dataTransfer.files; if (files.length > 0) { handleFileSelect({ target: { files } }); } }
 function parseTextFile(text) {
   const games = [];
-  const lines = text.split('\n');
-  let currentGame = null;
-  let inNetworks = false;
-  let networkLines = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  let currentGameName = null;
+  let currentGameComment = '';
+  
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (line.includes('========== NETWORKS ==========')) { inNetworks = true; networkLines = []; continue; }
-    if (inNetworks && line.trim() === '') { continue; }
-    if (inNetworks && !line.includes('----------') && !line.includes('Status') && !line.includes('SDK') && !line.includes('Adapter') && line.trim()) {
-      if (currentGame) { currentGame.comment += '\n========== NETWORKS ==========\n' + networkLines.join('\n'); games.push(currentGame); }
-      currentGame = { name: line.trim(), comment: '', gid: Math.random().toString() };
-      inNetworks = false;
+    
+    if (line.includes('========== NETWORKS ==========')) {
+      currentGameComment += line + '\n';
       continue;
     }
-    if (inNetworks && line.trim()) { networkLines.push(line); }
-    if (!inNetworks && !line.includes('=') && !line.includes('Status') && !line.includes('SDK') && !line.includes('Adapter') && line.trim() && !line.includes('SDK list') && !line.includes('Version') && !line.includes('Plugin') && !line.includes('Unity')) {
-      if (currentGame && networkLines.length > 0) { currentGame.comment += '\n========== NETWORKS ==========\n' + networkLines.join('\n'); games.push(currentGame); networkLines = []; }
-      currentGame = { name: line.trim(), comment: '', gid: Math.random().toString() };
+    
+    if (line.startsWith('----------') && line.endsWith('----------')) {
+      currentGameComment += line + '\n';
+      continue;
+    }
+    
+    if (line.includes('Status') || line.includes('SDK') || line.includes('Adapter') || line.includes('SDK list') || line.includes('MAX') || line.includes('Version') || line.includes('Plugin') || line.includes('Unity')) {
+      if (currentGameComment) currentGameComment += line + '\n';
+      continue;
+    }
+    
+    if (currentGameName && currentGameComment.includes('NETWORKS')) {
+      games.push({ name: currentGameName, comment: currentGameComment, gid: Math.random().toString() });
+      currentGameName = line;
+      currentGameComment = '';
+    } else if (!currentGameName) {
+      currentGameName = line;
+    } else {
+      currentGameComment += line + '\n';
     }
   }
-  if (currentGame && networkLines.length > 0) { currentGame.comment += '\n========== NETWORKS ==========\n' + networkLines.join('\n'); games.push(currentGame); }
-  return { games, totalGames: games.length, scannedAt: new Date().toISOString() };
+  
+  if (currentGameName && currentGameComment.includes('NETWORKS')) {
+    games.push({ name: currentGameName, comment: currentGameComment, gid: Math.random().toString() });
+  }
+  
+  return { games: games.filter(g => g.comment.includes('NETWORKS')), totalGames: games.length, scannedAt: new Date().toISOString() };
 }
 function handleFileSelect(event) {
   const file = event.target.files[0];
@@ -104,11 +122,9 @@ function handleFileSelect(event) {
   reader.onload = (e) => {
     try {
       const content = e.target.result;
-      if (file.name.endsWith('.json')) { gameData = JSON.parse(content); } 
-      else if (file.name.endsWith('.txt')) { gameData = parseTextFile(content); } 
-      else { throw new Error('Unsupported file type'); }
-      if (!gameData.games || gameData.games.length === 0) { throw new Error('No games found in file'); }
-      document.getElementById('uploadStatus').innerHTML = `<div class="success">✓ Loaded ${gameData.games.length} games - Ready to search!</div>`;
+      gameData = parseTextFile(content);
+      if (!gameData.games || gameData.games.length === 0) { throw new Error('No games found'); }
+      document.getElementById('uploadStatus').innerHTML = `<div class="success">✓ Loaded ${gameData.games.length} games!</div>`;
       for (let i = 0; i < 4; i++) { document.getElementById(`btn${i}`).disabled = false; }
       document.getElementById('searchButtons').style.opacity = '1';
     } catch (err) {
@@ -118,54 +134,58 @@ function handleFileSelect(event) {
   reader.readAsText(file);
 }
 function searchGameDetails() {
-  const gameName = document.getElementById('game-name').value;
+  const gameName = document.getElementById('game-name').value.toUpperCase();
   if (!gameName || !gameData) { alert('Load file first!'); return; }
   const r = document.getElementById('results-game-details');
-  const gameNameUpper = gameName.toUpperCase();
-  const game = gameData.games.find(g => g.name.toUpperCase().includes(gameNameUpper));
+  const game = gameData.games.find(g => g.name.toUpperCase().includes(gameName));
   if (!game) { r.innerHTML = '<div class="error">Game not found</div>'; return; }
-  const comment = game.comment;
-  const lines = comment.split('\n');
+  const lines = game.comment.split('\n');
   let html = `<div class="game-details"><div style="font-weight: 600; font-size: 16px; color: #f1f5f9; margin-bottom: 12px;">${game.name}</div>`;
   let inNetworks = false;
+  let currentNetwork = '';
   for (const line of lines) {
     if (line.includes('========== NETWORKS ==========')) { inNetworks = true; continue; }
-    if (inNetworks && line.includes('----------')) { continue; }
-    if (inNetworks && line.trim() !== '') { html += `<div class="network-info">${line.trim()}</div>`; }
+    if (inNetworks && line.startsWith('----------') && line.endsWith('----------')) {
+      currentNetwork = line.replace(/----------/g, '').trim();
+      continue;
+    }
+    if (inNetworks && line.includes('Status') || line.includes('SDK') || line.includes('Adapter')) {
+      if (currentNetwork) {
+        html += `<div class="network-block"><div class="network-name">${currentNetwork}</div><div class="network-info">${line}</div>`;
+        currentNetwork = '';
+      } else {
+        html += `<div class="network-info">${line}</div></div>`;
+      }
+    }
   }
   html += '</div>';
   r.innerHTML = html;
 }
 function searchGamesUsingNetwork() {
-  const net = document.getElementById('network-using').value;
+  const net = document.getElementById('network-using').value.toUpperCase();
   if (!net || !gameData) { alert('Load file first!'); return; }
   const r = document.getElementById('results-using');
-  const networkUpper = net.toUpperCase();
-  const results = gameData.games.filter(g => g.comment.toUpperCase().includes(networkUpper)).map(g => g.name);
-  if (!results.length) { r.innerHTML = '<div class="error">No games found using "' + net + '"</div>'; return; }
-  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' + results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
+  const results = gameData.games.filter(g => g.comment.toUpperCase().includes(net)).map(g => g.name);
+  if (!results.length) { r.innerHTML = '<div class="error">No games found</div>'; return; }
+  r.innerHTML = '<div class="success">Found ' + results.length + '</div>' + results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
 }
 function searchByVersion() {
-  const net = document.getElementById('network-version').value;
-  const ver = document.getElementById('version-search').value;
-  if (!net || !ver || !gameData) { alert('Load file and enter both!'); return; }
+  const net = document.getElementById('network-version').value.toUpperCase();
+  const ver = document.getElementById('version-search').value.toUpperCase();
+  if (!net || !ver || !gameData) { alert('Enter both!'); return; }
   const r = document.getElementById('results-version');
-  const networkUpper = net.toUpperCase();
-  const versionUpper = ver.toUpperCase();
-  const results = gameData.games.filter(g => { const text = g.comment.toUpperCase(); return text.includes(networkUpper) && text.includes(versionUpper); }).map(g => g.name);
+  const results = gameData.games.filter(g => g.comment.toUpperCase().includes(net) && g.comment.toUpperCase().includes(ver)).map(g => g.name);
   if (!results.length) { r.innerHTML = '<div class="error">No games found</div>'; return; }
-  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' + results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
+  r.innerHTML = '<div class="success">Found ' + results.length + '</div>' + results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
 }
 function searchNotUsing() {
-  const net = document.getElementById('network-not-using').value;
-  const ver = document.getElementById('version-not-using').value;
-  if (!net || !ver || !gameData) { alert('Load file and enter both!'); return; }
+  const net = document.getElementById('network-not-using').value.toUpperCase();
+  const ver = document.getElementById('version-not-using').value.toUpperCase();
+  if (!net || !ver || !gameData) { alert('Enter both!'); return; }
   const r = document.getElementById('results-not-using');
-  const networkUpper = net.toUpperCase();
-  const versionUpper = ver.toUpperCase();
-  const results = gameData.games.filter(g => { const text = g.comment.toUpperCase(); return !text.includes(networkUpper) || !text.includes(versionUpper); }).map(g => g.name);
-  if (!results.length) { r.innerHTML = '<div class="success">All games using it!</div>'; return; }
-  r.innerHTML = '<div class="success">Found ' + results.length + ' games</div>' + results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
+  const results = gameData.games.filter(g => !g.comment.toUpperCase().includes(net) || !g.comment.toUpperCase().includes(ver)).map(g => g.name);
+  if (!results.length) { r.innerHTML = '<div class="success">All using it!</div>'; return; }
+  r.innerHTML = '<div class="success">Found ' + results.length + '</div>' + results.map(x => '<div class="result-item"><div class="result-game">' + x + '</div></div>').join('');
 }
 </script>
 </body>
