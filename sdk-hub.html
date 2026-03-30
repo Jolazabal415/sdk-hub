@@ -14,7 +14,8 @@
     .drop-zone { border: 2px dashed rgba(148, 163, 184, 0.4); border-radius: 8px; padding: 40px; text-align: center; margin: 15px 0; transition: all 0.3s; cursor: pointer; }
     .drop-zone:hover, .drop-zone.dragover { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.6); }
     .drop-zone p { color: #94a3b8; margin-bottom: 10px; }
-    .buttons-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .buttons-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    @media (max-width: 768px) { .buttons-grid { grid-template-columns: 1fr; } }
     .search-button { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.3s; }
     .search-button:hover { background: rgba(30, 41, 59, 0.8); }
     .search-button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -31,7 +32,8 @@
     .result-game { font-weight: 600; color: #f1f5f9; }
     .error { color: #fca5a5; padding: 12px; background: rgba(220, 38, 38, 0.1); border-radius: 8px; margin: 10px 0; }
     .success { color: #86efac; padding: 12px; background: rgba(34, 197, 94, 0.1); border-radius: 8px; margin: 10px 0; }
-    .loading { color: #94a3b8; }
+    .game-details { background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 15px; margin: 10px 0; border-left: 3px solid #3b82f6; }
+    .network-info { color: #cbd5e1; font-size: 12px; line-height: 1.6; }
     #fileInput { display: none; }
   </style>
 </head>
@@ -54,6 +56,10 @@
   <div class="section">
     <div class="section-title">🔍 Step 2: Search</div>
     <div id="searchButtons" class="buttons-grid" style="opacity: 0.5;">
+      <button class="search-button" onclick="openModal('game-details')" disabled id="btn0">
+        <h3>View Game Details</h3>
+        <p>Enter game name to see all ad networks</p>
+      </button>
       <button class="search-button" onclick="openModal('games-using')" disabled id="btn1">
         <h3>Find Games Using Network</h3>
         <p>Enter ad network name to find games using it</p>
@@ -67,6 +73,16 @@
         <p>Enter which ad network and version to see which games are using the ad network but not this version</p>
       </button>
     </div>
+  </div>
+</div>
+
+<div id="game-details" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal('game-details')">×</button>
+    <h2>View Game Details</h2>
+    <input id="game-name" placeholder="Game name">
+    <button class="btn-submit" onclick="searchGameDetails()">Search</button>
+    <div id="results-game-details" class="results"></div>
   </div>
 </div>
 
@@ -136,6 +152,7 @@ function handleFileSelect(event) {
       gameData = JSON.parse(e.target.result);
       document.getElementById('uploadStatus').innerHTML = `<div class="success">✓ Loaded ${gameData.games.length} games - Ready to search!</div>`;
       
+      document.getElementById('btn0').disabled = false;
       document.getElementById('btn1').disabled = false;
       document.getElementById('btn2').disabled = false;
       document.getElementById('btn3').disabled = false;
@@ -145,6 +162,43 @@ function handleFileSelect(event) {
     }
   };
   reader.readAsText(file);
+}
+
+function searchGameDetails() {
+  const gameName = document.getElementById('game-name').value;
+  if (!gameName || !gameData) { alert('Load file first!'); return; }
+  
+  const r = document.getElementById('results-game-details');
+  const gameNameUpper = gameName.toUpperCase();
+  
+  const game = gameData.games.find(g => g.name.toUpperCase().includes(gameNameUpper));
+  
+  if (!game) {
+    r.innerHTML = '<div class="error">Game not found</div>';
+    return;
+  }
+  
+  const comment = game.comment;
+  const lines = comment.split('\n');
+  
+  let html = `<div class="game-details"><div style="font-weight: 600; font-size: 16px; color: #f1f5f9; margin-bottom: 12px;">${game.name}</div>`;
+  
+  let inNetworks = false;
+  for (const line of lines) {
+    if (line.includes('========== NETWORKS ==========')) {
+      inNetworks = true;
+      continue;
+    }
+    if (inNetworks && line.includes('----------')) {
+      continue;
+    }
+    if (inNetworks && line.trim() !== '') {
+      html += `<div class="network-info">${line.trim()}</div>`;
+    }
+  }
+  
+  html += '</div>';
+  r.innerHTML = html;
 }
 
 function searchGamesUsingNetwork() {
